@@ -12,5 +12,7 @@ class Ticket(db.Model):
     priority = db.Column(db.String(50), default='Medium Priority')
     reported_date = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Foreign key linking back to the User table
+    # New column for average response time calculations
+    resolved_date = db.Column(db.DateTime, nullable=True) 
+    
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
