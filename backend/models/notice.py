@@ -12,4 +12,4 @@ class Notice(db.Model):
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Which admin published it
-    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)`
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
