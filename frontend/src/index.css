@@ -1,0 +1,9 @@
+/* frontend/src/index.css */
+@import "tailwindcss";
+
+body {
+  background-color: #F8FAFC; /* Light gray dashboard background */
+  color: #0F172A; /* Slate 900 text */
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+}
