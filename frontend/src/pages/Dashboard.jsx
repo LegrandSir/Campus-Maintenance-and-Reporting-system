@@ -19,12 +19,13 @@ export default function Dashboard() {
     setUser(JSON.parse(storedUser));
 
     // Fetch live tickets (Falls back to the exact UI screenshot data if API fails)
+    // Change your fallback data to use clean numbers for the IDs:
     api.get('/tickets').then(res => setTickets(res.data)).catch(() => {
       setTickets([
-        { id: '#TKT-1024', title: 'Water Leakage in Freida brown bath...', location: '2nd Floor, Bathroom 4', priority: 'Urgent Priority', status: 'In Progress', date: '2023-10-24' },
-        { id: '#TKT-1025', title: 'Broken AC Unit in Lab 4', location: 'lilian beam k Ground Floor', priority: 'High Priority', status: 'Open', date: '2023-10-25' },
-        { id: '#TKT-1018', title: 'Projector Bulb Replacement Needed', location: 'School of business, LT2', priority: 'Medium Priority', status: 'Resolved', date: '2023-10-18' },
-        { id: '#TKT-1026', title: 'Broken glass door', location: 'Humanities Wing, Entrance', priority: 'Low Priority', status: 'Open', date: '2023-10-26' },
+        { id: 1024, title: 'Water Leakage in Freida brown bath...', location: '2nd Floor, Bathroom 4', priority: 'Urgent Priority', status: 'In Progress', date: '2023-10-24' },
+        { id: 1025, title: 'Broken AC Unit in Lab 4', location: 'lilian beam k Ground Floor', priority: 'High Priority', status: 'Open', date: '2023-10-25' },
+        { id: 1018, title: 'Projector Bulb Replacement Needed', location: 'School of business, LT2', priority: 'Medium Priority', status: 'Resolved', date: '2023-10-18' },
+        { id: 1026, title: 'Broken glass door', location: 'Humanities Wing, Entrance', priority: 'Low Priority', status: 'Open', date: '2023-10-26' },
       ]);
     });
   }, [navigate]);
@@ -148,7 +149,7 @@ export default function Dashboard() {
                         </div>
                         <p className="text-sm text-slate-500 mb-3">{t.location}</p>
                         <div className="flex items-center gap-4 text-xs font-medium">
-                          <span className="text-slate-400 flex items-center gap-1"><Clock size={14} /> Reported: {t.date}</span>
+                          <span className="text-slate-400 flex items-center gap-1"><Clock size={14} /> Reported: {t.reported_date ? new Date(t.reported_date).toLocaleDateString() : t.date}</span>
                           <span className={`flex items-center gap-1 ${t.priority.includes('Urgent') ? 'text-red-600' : t.priority.includes('High') ? 'text-orange-500' : t.priority.includes('Medium') ? 'text-blue-600' : 'text-slate-500'}`}>
                             <AlertTriangle size={14} /> {t.priority}
                           </span>
@@ -159,7 +160,7 @@ export default function Dashboard() {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${t.status === 'In Progress' ? 'bg-orange-100 text-orange-700' : t.status === 'Resolved' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
                         {t.status}
                       </span>
-                      <button className="text-sm font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1">Details &gt;</button>
+                      <button onClick={() => navigate(`/ticket/${t.id}`)} className="text-sm font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1">Details &gt;</button>
                       <button className="text-slate-400 hover:text-slate-600"><MoreHorizontal size={20} /></button>
                     </div>
                   </div>

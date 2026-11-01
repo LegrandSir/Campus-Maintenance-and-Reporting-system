@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ReportIssue from './pages/ReportIssue';
+import TicketDetails from './pages/TicketDetails';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/report" element={<ReportIssue />} />
+        <Route path="/ticket/:id" element={<TicketDetails />} />
       </Routes>
     </Router>
   );
