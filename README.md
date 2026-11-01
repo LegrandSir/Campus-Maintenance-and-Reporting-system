@@ -1,93 +1,89 @@
 # CampusFix - Campus Maintenance and Reporting System
 
 ## Overview
-
-CampusFix is a centralized campus maintenance and reporting platform designed to simplify the reporting, tracking, and resolution of maintenance issues within a university environment.
+CampusFix is a centralized campus maintenance and reporting platform designed to simplify the reporting, tracking, and resolution of maintenance issues within a university environment (customized for USIU-Africa).
 
 The system allows students and faculty to report issues such as electrical faults, plumbing problems, damaged facilities, or ICT-related concerns. Once a complaint is submitted, the system automatically routes the issue to the appropriate maintenance office, enabling faster response times and improved communication between stakeholders.
 
 Users can monitor repair progress, receive maintenance notices, and provide feedback once issues have been resolved.
 
 ---
-## Problem Statement
 
+## Problem Statement
 Students and faculty often experience difficulty reporting maintenance issues because communication channels are unclear, response times are slow, and there is limited visibility into the status of reported problems.
 
 CampusFix addresses these challenges by providing:
-
--A single platform for reporting maintenance issues
--Automatic ticket routing
--Status tracking and notifications
--Administrative monitoring and reporting
+* A single platform for reporting maintenance issues
+* Automatic ticket routing
+* Status tracking and notifications
+* Administrative monitoring and reporting
 
 ---
 
 ## Objectives
-
--Improve maintenance issue reporting on campus
--Increase transparency in repair processes
--Enable efficient communication between users and maintenance teams
--Reduce response and resolution times
--Provide administrative oversight of maintenance operations
+* Improve maintenance issue reporting on campus
+* Increase transparency in repair processes
+* Enable efficient communication between users and maintenance teams
+* Reduce response and resolution times
+* Provide administrative oversight of maintenance operations
 
 ---
 
 ## Main Features
 
 ### User Authentication
--Secure login system
--Role-based access control
+* Secure JWT-based login system
+* Role-based access control (Students, Faculty, Facility Desk)
 
 ### Ticket Management
--Submit maintenance complaints
--Assign issue category and priority
--Generate unique ticket numbers
+* Submit maintenance complaints customized for campus facilities
+* Assign issue category and priority
+* Generate unique ticket numbers
 
 ### Issue Tracking
--Monitor repair progress
--View ticket status updates
--Receive notifications
+* Monitor repair progress via dynamic tracking progressions
+* View ticket status updates in real-time
+* Receive system notifications and campus alerts
 
 ### Maintenance Operations
--Manage assigned tickets
--Update repair status
--Track resolution times
+* Interactive Kanban Board with drag-and-drop status updates
+* Manage assigned tickets and update repair statuses
+* Track resolution times and average response metrics
 
 ### Administrative Functions
--Manage users
--Manage offices
--Configure issue categories
--Publish campus maintenance alerts
+* Manage users and offices
+* Configure issue categories
+* Publish campus maintenance alerts
 
 ---
 
-### Technologies Used
+## Technologies Used
 
-### Backend
--Python
--Flask
--SQLAlchemy
--Flask-Migrate
--JWT Authentication
+**Backend**
+* Python
+* Flask
+* Flask-SQLAlchemy & Flask-Migrate
+* JWT Authentication (Flask-JWT-Extended)
 
-### Database
--PostgreSQL
+**Database**
+* PostgreSQL
 
-### Frontend
--React
+**Frontend**
+* React (Vite)
+* Tailwind CSS
+* Lucide React (Icons)
+* React Router
 
-### Collaboration Tools
--GitHub
--GitHub Projects
--GitHub Issues
--Figma
--Slack
+**Collaboration Tools**
+* GitHub (Projects & Issues)
+* Figma
+* Slack
 
 ---
 
 ## Project Structure
 
-``` text
+```text
 Campus-Maintenance-and-Reporting-system/
 │
 ├── backend/
@@ -100,44 +96,15 @@ Campus-Maintenance-and-Reporting-system/
 │   ├── requirements.txt
 │   └── seed.py
 │
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js
+│
 └── README.md
-```
-
-## Current Progress
-
-The project is currently under active development as part of the SWE3020B Software Quality Assurance and Security course.
-
-### Completed
-
-- Repository setup and project organization
-- Backend folder structure implementation
-- Database configuration and migrations
-- Model creation and database design
-- API route organization
-- GitHub project management setup
-- Initial project documentation
-
-### In Progress
-
-- Dashboard development
-- Frontend implementation using React
-- Authentication and authorization features
-- Ticket management endpoints
-- Maintenance notification functionality
-- Testing and quality assurance
-
-### Planned
-
-- User feedback functionality
-- Performance testing
-- Final system integration
-- Deployment preparation
-- Project demonstration and evaluation
-
-## Project Status
-
-Sprint 1 is focused on establishing the system architecture, implementing core backend functionality, developing the frontend interface, creating project documentation, and preparing the foundation for future features.
-
-## License
-
-This project was developed for academic purposes as part of the SWE3020B Software Quality Assurance and Security coursework.
