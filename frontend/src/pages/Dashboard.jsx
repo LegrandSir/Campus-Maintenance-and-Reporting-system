@@ -81,7 +81,9 @@ export default function Dashboard() {
             </div>
             <div className="flex gap-3">
               <button className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 flex items-center gap-2"><Clock size={16} /> Request History</button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2"><Plus size={16} /> New Ticket</button>
+              <button onClick={() => navigate('/report')} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2">
+  <Plus size={16} /> New Ticket
+</button>
             </div>
           </div>
 
