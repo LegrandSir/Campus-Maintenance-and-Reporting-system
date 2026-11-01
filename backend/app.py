@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from config import Config
+from routes.ticket_routes import ticket_bp
 from models import db
 
 # Explicitly import models so SQLAlchemy registers them
@@ -18,6 +19,7 @@ from routes.notice_routes import notice_bp
 app = Flask(__name__)
 app.config.from_object(Config)
 
+
 CORS(app)
 jwt = JWTManager(app)
 
@@ -29,6 +31,7 @@ migrate = Migrate(app, db)
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(ticket_bp, url_prefix='/api/tickets')
 app.register_blueprint(notice_bp, url_prefix='/api/notices')
+
 
 
 @app.route('/')

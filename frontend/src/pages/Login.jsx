@@ -14,10 +14,16 @@ export default function Login() {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login', { email, password });
-      if (response.data.success) {
-        localStorage.setItem('token', response.data.token);
+      
+      // Dynamically grab whichever name the backend uses
+      const actualToken = response.data.access_token || response.data.token;
+      
+      if (actualToken) {
+        localStorage.setItem('token', actualToken);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/dashboard');
+      } else {
+        setError('Login succeeded, but no token was received.');
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Authentication failed');
