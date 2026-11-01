@@ -2,8 +2,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { Zap, Droplets, Wind, Wrench, Hammer, Camera } from 'lucide-react';
+import { Zap, Droplets, Wind, Wrench, Hammer, Camera, Wifi } from 'lucide-react';
 import api from '../services/api';
+
 
 export default function ReportIssue() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function ReportIssue() {
     { name: 'Plumbing', icon: <Droplets size={24} /> },
     { name: 'HVAC', icon: <Wind size={24} /> },
     { name: 'Structural', icon: <Hammer size={24} /> },
+    { name: 'IT & Network', icon: <Wifi size={24} /> },
     { name: 'General Repair', icon: <Wrench size={24} /> },
   ];
 
@@ -79,9 +81,13 @@ export default function ReportIssue() {
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Building / Facility</label>
                   <select required className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-700" value={formData.building} onChange={e => setFormData({...formData, building: e.target.value})}>
                     <option value="">Select a building</option>
-                    <option value="Science Building">Science Building</option>
-                    <option value="Main Library">Main Library</option>
-                    <option value="Dormitory B">Dormitory B</option>
+                    <option value="Freida Brown Student Center">Freida Brown Student Center</option>
+                    <option value="Lillian K. Beam Building">Lillian K. Beam Building</option>
+                    <option value="Chandaria School of Business">Chandaria School of Business</option>
+                    <option value="Science Center">Science Center</option>
+                    <option value="Library">Library</option>
+                    <option value="Hostels / Dormitories">Hostels / Dormitories</option>
+                    <option value="Cafeteria">Cafeteria</option>
                   </select>
                 </div>
               </div>

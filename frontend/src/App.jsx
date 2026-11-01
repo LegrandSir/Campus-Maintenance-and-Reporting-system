@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ReportIssue from './pages/ReportIssue';
 import TicketDetails from './pages/TicketDetails';
+import MyTickets from './pages/MyTickets';
+import KanbanBoard from './pages/KanbanBoard';
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/report" element={<ReportIssue />} />
         <Route path="/ticket/:id" element={<TicketDetails />} />
+        <Route path="/tickets" element={<MyTickets />} />
+        <Route path="/kanban" element={<KanbanBoard />} />
       </Routes>
     </Router>
   );

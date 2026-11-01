@@ -12,7 +12,10 @@ export default function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [ticket, setTicket] = useState(null);
-  const [user, setUser] = useState({ name: 'User', role: 'Student' });
+  const [user, setUser] = useState({ name: 'Paul Wafula', role: 'Student' });
+  
+  const [feedback, setFeedback] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -22,13 +25,33 @@ export default function TicketDetails() {
        .then(res => setTicket(res.data))
        .catch(err => console.error("Failed to load ticket", err));
   }, [id]);
+
   const handleResolve = async () => {
     try {
       await api.patch(`/tickets/${id}/resolve`);
-      // Optimistically update the UI so the user sees the change instantly
       setTicket(prev => ({ ...prev, status: 'Resolved' }));
     } catch (err) {
       console.error("Failed to resolve ticket", err);
+    }
+  };
+
+  const handleEscalate = async () => {
+    try {
+      await api.patch(`/tickets/${id}/escalate`);
+      setTicket(prev => ({ ...prev, priority: 'Urgent Priority' }));
+    } catch (err) {
+      console.error("Failed to escalate ticket", err);
+    }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!feedback.trim()) return;
+    try {
+      await api.post(`/tickets/${id}/feedback`, { feedback });
+      setFeedbackSubmitted(true);
+      setFeedback('');
+    } catch (err) {
+      console.error("Failed to submit feedback", err);
     }
   };
 
@@ -71,24 +94,32 @@ export default function TicketDetails() {
                   <span className={`px-2.5 py-1 rounded-full flex items-center gap-1 ${ticket.priority.includes('Urgent') ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
                     <AlertTriangle size={14} /> {ticket.priority}
                   </span>
-                  <span className="text-slate-400 flex items-center gap-1"><Clock size={14} /> Reported {new Date(ticket.reported_date).toLocaleDateString()}</span>
+                  <span className="text-slate-400 flex items-center gap-1"><Clock size={14} /> Reported {new Date(ticket.reported_date || Date.now()).toLocaleDateString()}</span>
                 </div>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 flex items-center gap-2">
-                  <AlertTriangle size={16} /> Escalate Issue
+                <button 
+                  onClick={handleEscalate}
+                  disabled={ticket.priority.includes('Urgent')}
+                  className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
+                    ticket.priority.includes('Urgent') 
+                      ? 'bg-red-50 border border-red-200 text-red-500 cursor-not-allowed' 
+                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <AlertTriangle size={16} /> {ticket.priority.includes('Urgent') ? 'Escalated' : 'Escalate Issue'}
                 </button>
                 <button 
                   onClick={handleResolve} 
                   disabled={ticket.status === 'Resolved'}
                   className={`px-4 py-2 text-white rounded-lg font-medium flex items-center gap-2 transition-colors ${
                     ticket.status === 'Resolved' 
-                    ? 'bg-slate-400 cursor-not-allowed' 
-                    : 'bg-[#3B5998] hover:bg-blue-700'
-                }`}
-              >
-                {ticket.status === 'Resolved' ? 'Resolved' : 'Mark as Resolved'}
-              </button>
+                      ? 'bg-slate-400 cursor-not-allowed' 
+                      : 'bg-[#3B5998] hover:bg-blue-700'
+                  }`}
+                >
+                  {ticket.status === 'Resolved' ? 'Resolved' : 'Mark as Resolved'}
+                </button>
                 <button className="p-2 text-slate-400 hover:text-slate-600"><MoreVertical size={20} /></button>
               </div>
             </div>
@@ -175,10 +206,29 @@ export default function TicketDetails() {
 
                 {/* Feedback Panel */}
                 <div className="bg-white p-6 rounded-xl border border-slate-200">
-                  <h3 className="font-semibold text-slate-900 mb-1 flex items-center gap-2"><Star size={16} className="text-slate-400" /> Share Your Feedback</h3>
+                  <h3 className="font-semibold text-slate-900 mb-1 flex items-center gap-2">
+                    <Star size={16} className="text-slate-400" /> Share Your Feedback
+                  </h3>
                   <p className="text-xs text-slate-500 mb-4">Help us improve the campus maintenance experience.</p>
-                  <textarea rows="3" placeholder="Tell us what you think..." className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm mb-3" disabled></textarea>
-                  <button className="w-full bg-[#3B5998] text-white font-medium py-2.5 rounded-lg text-sm opacity-50 cursor-not-allowed">Submit Feedback</button>
+                  <textarea 
+                    rows="3" 
+                    placeholder={ticket.status !== 'Resolved' ? "You can leave feedback once the issue is resolved." : "Tell us what you think..."} 
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    disabled={feedbackSubmitted || ticket.status !== 'Resolved'}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50" 
+                  ></textarea>
+                  <button 
+                    onClick={handleSubmitFeedback}
+                    disabled={!feedback.trim() || feedbackSubmitted || ticket.status !== 'Resolved'}
+                    className={`w-full font-medium py-2.5 rounded-lg text-sm transition-colors ${
+                      !feedback.trim() || feedbackSubmitted || ticket.status !== 'Resolved'
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-[#3B5998] hover:bg-blue-700 text-white'
+                    }`}
+                  >
+                    {feedbackSubmitted ? 'Feedback Received!' : 'Submit Feedback'}
+                  </button>
                 </div>
 
                 {/* Emergency Protocol */}
