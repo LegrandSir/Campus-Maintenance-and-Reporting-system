@@ -16,15 +16,14 @@ export default function Dashboard() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(4);
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   useEffect(() => {
     const calculateScreenFit = () => {
-      // Rough estimation: Total screen height minus the header, stats cards, and paddings (~450px)
       const availableHeight = window.innerHeight - 450;
-      const ticketCardHeight = 110; // Height of one ticket card + spacing
+      const ticketCardHeight = 110; 
       let fitCount = Math.floor(availableHeight / ticketCardHeight);
       
-      // Ensure a minimum of 4 tickets are shown regardless of screen size
       if (fitCount < 4) fitCount = 4;
       setVisibleCount(fitCount);
     };
@@ -42,7 +41,6 @@ export default function Dashboard() {
     api.get('/tickets').then(res => setTickets(res.data)).catch(console.error);
     api.get('/tickets/stats').then(res => setStats(res.data)).catch(console.error);
     
-    // Fallback if tickets fail to load
     api.get('/tickets').then(res => setTickets(res.data)).catch(() => {
       setTickets([
         { id: 1024, title: 'Water Leakage in Freida brown bath...', location: '2nd Floor, Bathroom 4', priority: 'Urgent Priority', status: 'In Progress', date: '2023-10-24' },
@@ -60,6 +58,11 @@ export default function Dashboard() {
   );
 
   const displayedTickets = filteredTickets.slice(0, visibleCount);
+
+  // Calculate real completion percentage
+  const completionRate = stats.total > 0 
+    ? Math.round((stats.resolved / stats.total) * 100) 
+    : 100;
 
   return (
     <div className="flex h-screen bg-[#F8FAFC]">
@@ -137,10 +140,12 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between items-end mb-2">
                 <span className="text-sm">Maintenance Progress</span>
-                <span className="text-xl font-bold">88%</span>
+                <span className="text-xl font-bold">{completionRate}%</span>
               </div>
-              <div className="w-full bg-white/20 rounded-full h-1.5 mb-4"><div className="bg-white w-[88%] h-1.5 rounded-full"></div></div>
-              <p className="text-xs text-blue-100">9.2k issues resolved campus-wide this term.</p>
+              <div className="w-full bg-white/20 rounded-full h-1.5 mb-4">
+                <div className="bg-white h-1.5 rounded-full" style={{ width: `${completionRate}%` }}></div>
+              </div>
+              <p className="text-xs text-blue-100">{stats.resolved} issues resolved campus-wide this term.</p>
             </div>
           </div>
 
@@ -173,7 +178,7 @@ export default function Dashboard() {
                           <span className="text-slate-400 flex items-center gap-1">
                             <Clock size={14} /> Reported: {t.reported_date ? new Date(t.reported_date).toLocaleDateString() : t.date}
                           </span>
-                          <span className={`flex items-center gap-1 ${t.priority.includes('Urgent') ? 'text-red-600' : t.priority.includes('High') ? 'text-orange-500' : t.priority.includes('Medium') ? 'text-blue-600' : 'text-slate-500'}`}>
+                          <span className={`flex items-center gap-1 ${t.priority?.includes('Urgent') ? 'text-red-600' : t.priority?.includes('High') ? 'text-orange-500' : t.priority?.includes('Medium') ? 'text-blue-600' : 'text-slate-500'}`}>
                             <AlertTriangle size={14} /> {t.priority}
                           </span>
                         </div>
@@ -184,7 +189,48 @@ export default function Dashboard() {
                         {t.status}
                       </span>
                       <button onClick={() => navigate(`/ticket/${t.id}`)} className="text-sm font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1">Details &gt;</button>
-                      <button className="text-slate-400 hover:text-slate-600"><MoreHorizontal size={20} /></button>
+                      
+                      {/* Action Menu (3 Dots) */}
+                      <div className="relative">
+                        <button 
+                          onClick={() => setActiveDropdown(activeDropdown === t.id ? null : t.id)}
+                          className="p-1 text-slate-400 hover:bg-slate-100 rounded"
+                        >
+                          <MoreHorizontal size={20} />
+                        </button>
+                        
+                        {activeDropdown === t.id && (
+                          <div className="absolute right-0 mt-2 w-36 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-10">
+                            <button 
+                              onClick={() => {
+                                setActiveDropdown(null);
+                                navigate(`/edit-ticket/${t.id}`);
+                              }}
+                              disabled={t.status === 'Resolved' || t.status === 'In Progress'}
+                              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Edit Ticket
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                if(window.confirm('Are you sure you want to delete this ticket?')) {
+                                  try {
+                                    await api.delete(`/tickets/${t.id}`);
+                                    setTickets(tickets.filter(ticket => ticket.id !== t.id));
+                                  } catch (err) {
+                                    console.error("Failed to delete ticket", err);
+                                  }
+                                }
+                                setActiveDropdown(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              Delete Ticket
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   </div>
                 ))}

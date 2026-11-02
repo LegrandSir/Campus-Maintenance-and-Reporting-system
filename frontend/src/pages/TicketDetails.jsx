@@ -55,6 +55,15 @@ export default function TicketDetails() {
     }
   };
 
+  const handleCancel = async () => {
+    try {
+      await api.patch(`/tickets/${id}/status`, { status: 'Cancelled' });
+      setTicket(prev => ({ ...prev, status: 'Cancelled' }));
+    } catch (err) {
+      console.error("Failed to cancel ticket", err);
+    }
+  };
+
   if (!ticket) return <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">Loading...</div>;
 
   return (
@@ -98,28 +107,44 @@ export default function TicketDetails() {
                 </div>
               </div>
               <div className="flex gap-3">
+                {/* 1. Escalate is visible to everyone */}
                 <button 
                   onClick={handleEscalate}
-                  disabled={ticket.priority.includes('Urgent')}
+                  disabled={ticket.priority.includes('Urgent') || ticket.status === 'Resolved' || ticket.status === 'Cancelled'}
                   className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
-                    ticket.priority.includes('Urgent') 
-                      ? 'bg-red-50 border border-red-200 text-red-500 cursor-not-allowed' 
-                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                    ticket.priority.includes('Urgent') || ticket.status === 'Resolved' || ticket.status === 'Cancelled'
+                      ? 'bg-slate-50 border border-slate-200 text-slate-400 cursor-not-allowed' 
+                      : 'bg-white border border-red-200 text-red-600 hover:bg-red-50'
                   }`}
                 >
                   <AlertTriangle size={16} /> {ticket.priority.includes('Urgent') ? 'Escalated' : 'Escalate Issue'}
                 </button>
-                <button 
-                  onClick={handleResolve} 
-                  disabled={ticket.status === 'Resolved'}
-                  className={`px-4 py-2 text-white rounded-lg font-medium flex items-center gap-2 transition-colors ${
-                    ticket.status === 'Resolved' 
-                      ? 'bg-slate-400 cursor-not-allowed' 
-                      : 'bg-[#3B5998] hover:bg-blue-700'
-                  }`}
-                >
-                  {ticket.status === 'Resolved' ? 'Resolved' : 'Mark as Resolved'}
-                </button>
+
+                {/* 2. ONLY Students can Cancel, and ONLY if it's still Open */}
+                {user.role === 'Student' && ticket.status === 'Open' && (
+                  <button 
+                    onClick={handleCancel} 
+                    className="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg font-medium flex items-center gap-2 transition-colors"
+                  >
+                    Cancel Request
+                  </button>
+                )}
+
+                {/* 3. ONLY Staff and Admins can Mark as Resolved */}
+                {(user.role === 'Staff' || user.role === 'Admin') && (
+                  <button 
+                    onClick={handleResolve} 
+                    disabled={ticket.status === 'Resolved'}
+                    className={`px-4 py-2 text-white rounded-lg font-medium flex items-center gap-2 transition-colors ${
+                      ticket.status === 'Resolved' 
+                        ? 'bg-slate-400 cursor-not-allowed' 
+                        : 'bg-[#3B5998] hover:bg-blue-700'
+                    }`}
+                  >
+                    {ticket.status === 'Resolved' ? 'Resolved' : 'Mark as Resolved'}
+                  </button>
+                )}
+                
                 <button className="p-2 text-slate-400 hover:text-slate-600"><MoreVertical size={20} /></button>
               </div>
             </div>
@@ -159,19 +184,35 @@ export default function TicketDetails() {
                     <h3 className="font-semibold text-slate-900">Tracking Progression</h3>
                     <span className="text-xs font-semibold bg-slate-100 text-slate-500 px-2 py-1 rounded">LIVE STATUS</span>
                   </div>
-                  <div className="relative border-l-2 border-blue-500 ml-3 space-y-8 pb-4">
+                  
+                  {/* Dynamic Timeline border color changes if resolved */}
+                  <div className={`relative border-l-2 ml-3 space-y-8 pb-4 ${ticket.status === 'Resolved' ? 'border-green-500' : ticket.status === 'In Progress' ? 'border-blue-500' : 'border-slate-200'}`}>
+                    
+                    {/* 1. Issue Reported (Always Green/Done) */}
                     <div className="relative pl-6">
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 bg-green-500 rounded-full border-4 border-white flex items-center justify-center"><CheckCircle size={10} className="text-white absolute" /></div>
-                      <h4 className="text-sm font-semibold text-slate-900">Issue Reported <span className="text-xs font-normal text-slate-400 ml-2">Just now</span></h4>
+                      <div className="absolute -left-[9px] top-0 w-4 h-4 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+                        <CheckCircle size={10} className="text-white absolute" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-slate-900">
+                        Issue Reported <span className="text-xs font-normal text-slate-400 ml-2">{new Date(ticket.reported_date || Date.now()).toLocaleDateString()}</span>
+                      </h4>
                       <p className="text-xs text-slate-500 mt-1">Ticket #TK-{ticket.id} created and categorized.</p>
                     </div>
-                    <div className="relative pl-6">
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 bg-blue-500 rounded-full border-4 border-white"></div>
+
+                    {/* 2. In Progress (Lights up Blue when In Progress or beyond) */}
+                    <div className={`relative pl-6 ${ticket.status === 'Open' ? 'opacity-40' : ''}`}>
+                      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white flex items-center justify-center ${ticket.status !== 'Open' ? 'bg-blue-500' : 'bg-slate-200'}`}>
+                        {ticket.status === 'Resolved' && <CheckCircle size={10} className="text-white absolute" />}
+                      </div>
                       <h4 className="text-sm font-semibold text-slate-900">In Progress</h4>
                       <p className="text-xs text-slate-500 mt-1">Facility team has been notified and is assessing the report.</p>
                     </div>
-                    <div className="relative pl-6 opacity-40">
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-200 rounded-full border-4 border-white"></div>
+
+                    {/* 3. Resolved (Lights up Green ONLY when Resolved) */}
+                    <div className={`relative pl-6 ${ticket.status !== 'Resolved' ? 'opacity-40' : ''}`}>
+                      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white flex items-center justify-center ${ticket.status === 'Resolved' ? 'bg-green-500' : 'bg-slate-200'}`}>
+                        {ticket.status === 'Resolved' && <CheckCircle size={10} className="text-white absolute" />}
+                      </div>
                       <h4 className="text-sm font-semibold text-slate-900">Ticket Resolved</h4>
                       <p className="text-xs text-slate-500 mt-1">System closure and feedback requested.</p>
                     </div>
