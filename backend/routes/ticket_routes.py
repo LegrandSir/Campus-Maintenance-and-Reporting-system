@@ -96,3 +96,14 @@ def change_ticket_status(ticket_id):
     data = request.get_json()
     result, status_code = update_ticket_status(ticket_id, data.get('status'), current_user['email'])
     return jsonify(result), status_code
+
+@ticket_bp.route('/<int:ticket_id>', methods=['DELETE'], strict_slashes=False)
+@jwt_required()
+def delete_ticket(ticket_id):
+    ticket = Ticket.query.get(ticket_id)
+    if not ticket:
+        return jsonify({"error": "Ticket not found"}), 404
+        
+    db.session.delete(ticket)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Ticket deleted"}), 200
