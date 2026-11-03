@@ -19,11 +19,22 @@ def ticket_to_dict(t):
     }
 
 # strict_slashes=False prevents 308 redirects while accepting both URL formats
+from flask_jwt_extended import get_jwt_identity
+
 @ticket_bp.route('/', methods=['GET'], strict_slashes=False)
 @jwt_required()
 def get_tickets():
-    tickets = Ticket.query.order_by(Ticket.reported_date.desc()).all()
-    return jsonify([ticket_to_dict(t) for t in tickets]), 200
+    # Get the current logged-in user's info from the token
+    current_user = get_jwt_identity()
+    
+    # If they are Staff, ONLY return tickets assigned to them
+    if current_user['role'] == 'Staff':
+        tickets = Ticket.query.filter_by(assigned_to=current_user['name']).all()
+    else:
+        # Admins (and Students looking at the general board) see everything
+        tickets = Ticket.query.all()
+        
+    return jsonify([ticket.to_dict() for ticket in tickets]), 200
 
 @ticket_bp.route('/', methods=['POST'], strict_slashes=False)
 @jwt_required()
@@ -51,12 +62,23 @@ def get_single_ticket(ticket_id):
         return jsonify(ticket_to_dict(result['ticket'])), 200
     return jsonify(result), status_code
 # 2. ADD THIS NEW ROUTE AT THE BOTTOM:
-@ticket_bp.route('/<int:ticket_id>/resolve', methods=['PATCH'], strict_slashes=False)
+@ticket_bp.route('/<int:ticket_id>/status', methods=['PATCH'], strict_slashes=False)
 @jwt_required()
-def mark_ticket_resolved(ticket_id):
-    current_user = get_jwt_identity()
-    result, status_code = resolve_ticket(ticket_id, current_user['email'])
-    return jsonify(result), status_code
+def update_ticket_status(ticket_id):
+    ticket = Ticket.query.get(ticket_id)
+    if not ticket:
+        return jsonify({"error": "Ticket not found"}), 404
+        
+    data = request.get_json()
+    if 'status' in data:
+        ticket.status = data['status']
+    
+    # NEW: Allow Admins to assign a staff member
+    if 'assigned_to' in data:
+        ticket.assigned_to = data['assigned_to']
+        
+    db.session.commit()
+    return jsonify(ticket.to_dict()), 200
 
 def escalate_ticket(ticket_id, user_email):
     user = User.query.filter_by(email=user_email).first()

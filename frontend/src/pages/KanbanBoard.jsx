@@ -43,14 +43,26 @@ export default function KanbanBoard() {
     const ticketId = e.dataTransfer.getData('ticketId');
     if (!ticketId) return;
 
-    // Optimistic UI update
+    let assignedTech = null;
+    
+    // 1. Check if an Admin is moving it to "Assigned" or "In Progress"
+    if (user.role === 'Admin' && (newStatus === 'In Progress' || newStatus === 'Assigned')) {
+      const techName = window.prompt("Assign this ticket to which Technician? (e.g., John D.)");
+      if (!techName) return; // Cancel drop if they don't assign anyone
+      assignedTech = techName;
+    }
+
+    // 2. Optimistic UI update
     setTickets(prev => prev.map(t => 
-      t.id.toString() === ticketId ? { ...t, status: newStatus } : t
+      t.id.toString() === ticketId ? { ...t, status: newStatus, assigned_to: assignedTech || t.assigned_to } : t
     ));
 
-    // Update Database
+    // 3. Update Database
     try {
-      await api.patch(`/tickets/${ticketId}/status`, { status: newStatus });
+      const payload = { status: newStatus };
+      if (assignedTech) payload.assigned_to = assignedTech;
+      
+      await api.patch(`/tickets/${ticketId}/status`, payload);
     } catch (err) {
       console.error("Failed to update status", err);
       fetchTickets(); // Revert on failure
@@ -192,6 +204,14 @@ export default function KanbanBoard() {
                           </span>
                         </div>
                         <h4 className="text-sm font-semibold text-slate-900 mb-2">{ticket.title}</h4>
+                        
+                        {/* Display Assigned Tech if available */}
+                        {ticket.assigned_to && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600 mb-2 font-medium">
+                            <User size={12} /> Assigned: {ticket.assigned_to}
+                          </div>
+                        )}
+
                         <div className="flex items-start gap-1 text-xs text-slate-500 mb-4">
                           <MapPin size={12} className="mt-0.5 shrink-0" />
                           <span className="line-clamp-1">{ticket.location}</span>
