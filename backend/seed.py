@@ -9,9 +9,24 @@ def seed_database():
     with app.app_context():
         # 1. Seed Users (if not already seeded)
         if not User.query.first():
-            student = User(name="Paul Wafula", email="student@usiu.ac.ke", password_hash=generate_password_hash("password123"), role="Student")
-            maintenance = User(name="Campus Facility Desk", email="maintenance@usiu.ac.ke", password_hash=generate_password_hash("password123"), role="Maintenance")
-            admin = User(name="ICT Administrator", email="admin@usiu.ac.ke", password_hash=generate_password_hash("password123"), role="Admin")
+            student = User(
+                name="Paul Wafula", 
+                email="student@usiu.ac.ke", 
+                password_hash=generate_password_hash("password123"), 
+                role="Student"
+            )
+            maintenance = User(
+                name="Campus Facility Desk", 
+                email="maintenance@usiu.ac.ke", 
+                password_hash=generate_password_hash("password123"), 
+                role="Maintenance"
+            )
+            admin = User(
+                name="ICT Administrator", 
+                email="admin@usiu.ac.ke", 
+                password_hash=generate_password_hash("password123"), 
+                role="Admin"
+            )
             db.session.add_all([student, maintenance, admin])
             db.session.commit()
             print("✅ Demo accounts successfully seeded!")
@@ -20,7 +35,6 @@ def seed_database():
 
         # 2. Seed Tickets
         if not Ticket.query.first():
-            # Fetch the student to assign as the ticket author
             student = User.query.filter_by(email="student@usiu.ac.ke").first()
             
             if student:
@@ -30,6 +44,7 @@ def seed_database():
                     location="2nd Floor, Bathroom 4",
                     status="In Progress",
                     priority="Urgent Priority",
+                    assigned_to="John Kamau",  # Pre-assigned so Kanban card looks complete
                     user_id=student.id
                 )
                 
@@ -39,6 +54,7 @@ def seed_database():
                     location="lilian beam k Ground Floor",
                     status="Open",
                     priority="High Priority",
+                    assigned_to=None,
                     user_id=student.id
                 )
                 
@@ -48,6 +64,7 @@ def seed_database():
                     location="School of business, LT2",
                     status="Resolved",
                     priority="Medium Priority",
+                    assigned_to="David Mwangi",
                     user_id=student.id
                 )
 
