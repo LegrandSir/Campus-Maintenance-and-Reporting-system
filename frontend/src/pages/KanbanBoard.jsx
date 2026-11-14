@@ -13,12 +13,12 @@ export default function KanbanBoard() {
   const [user, setUser] = useState({ name: 'User', role: 'Staff' });
   const [tickets, setTickets] = useState([]);
   
-  // Derived stats
   const highPriorityCount = tickets.filter(t => t.priority.includes('Urgent') || t.priority.includes('High')).length;
   const unassignedCount = tickets.filter(t => t.status === 'Open').length;
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    // FIXED: Read from sessionStorage instead of localStorage
+    const storedUser = sessionStorage.getItem('user');
     if (!storedUser) return navigate('/login');
     setUser(JSON.parse(storedUser));
 
@@ -29,13 +29,12 @@ export default function KanbanBoard() {
     api.get('/tickets').then(res => setTickets(res.data)).catch(console.error);
   };
 
-  // HTML5 Native Drag & Drop Handlers
   const handleDragStart = (e, ticketId) => {
     e.dataTransfer.setData('ticketId', ticketId);
   };
 
   const handleDragOver = (e) => {
-    e.preventDefault(); // Necessary to allow dropping
+    e.preventDefault();
   };
 
   const handleDrop = async (e, newStatus) => {
@@ -43,29 +42,30 @@ export default function KanbanBoard() {
     const ticketId = e.dataTransfer.getData('ticketId');
     if (!ticketId) return;
 
-    let assignedTech = null;
+    const draggedTicket = tickets.find(t => t.id.toString() === ticketId);
+    if (!draggedTicket) return;
+
+    let assignedTech = draggedTicket.assigned_to;
     
-    // 1. Check if an Admin is moving it to "Assigned" or "In Progress"
-    if (user.role === 'Admin' && (newStatus === 'In Progress' || newStatus === 'Assigned')) {
+    // Only prompt IF Admin/Maintenance, moving to Assigned/In Progress, and NO ONE is assigned yet
+    if ((user.role === 'Admin' || user.role === 'Maintenance') && (newStatus === 'Assigned' || newStatus === 'In Progress') && !assignedTech) {
       const techName = window.prompt("Assign this ticket to which Technician? (e.g., John D.)");
-      if (!techName) return; // Cancel drop if they don't assign anyone
+      if (!techName) return; 
       assignedTech = techName;
     }
 
-    // 2. Optimistic UI update
     setTickets(prev => prev.map(t => 
-      t.id.toString() === ticketId ? { ...t, status: newStatus, assigned_to: assignedTech || t.assigned_to } : t
+      t.id.toString() === ticketId ? { ...t, status: newStatus, assigned_to: assignedTech } : t
     ));
 
-    // 3. Update Database
     try {
       const payload = { status: newStatus };
-      if (assignedTech) payload.assigned_to = assignedTech;
+      if (assignedTech !== draggedTicket.assigned_to) payload.assigned_to = assignedTech;
       
       await api.patch(`/tickets/${ticketId}/status`, payload);
     } catch (err) {
       console.error("Failed to update status", err);
-      fetchTickets(); // Revert on failure
+      fetchTickets();
     }
   };
 
@@ -81,7 +81,6 @@ export default function KanbanBoard() {
       <Sidebar />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 shrink-0">
           <div className="relative w-96">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -100,7 +99,6 @@ export default function KanbanBoard() {
         </header>
 
         <div className="flex-1 overflow-auto p-8 flex flex-col">
-          {/* Top Title & Actions */}
           <div className="flex justify-between items-end mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 mb-1">Maintenance Management</h1>
@@ -117,7 +115,6 @@ export default function KanbanBoard() {
             </div>
           </div>
 
-          {/* Stats Row */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center"><AlertCircle size={20} /></div>
@@ -149,7 +146,6 @@ export default function KanbanBoard() {
             </div>
           </div>
 
-          {/* Filters */}
           <div className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200 mb-6">
             <div className="flex gap-2">
               <button className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 border-r border-slate-200"><Filter size={16} /> Filters</button>
@@ -163,7 +159,6 @@ export default function KanbanBoard() {
             </div>
           </div>
 
-          {/* Kanban Board Columns */}
           <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
             {columns.map(col => {
               const columnTickets = tickets.filter(t => t.status === col.status);
@@ -205,7 +200,6 @@ export default function KanbanBoard() {
                         </div>
                         <h4 className="text-sm font-semibold text-slate-900 mb-2">{ticket.title}</h4>
                         
-                        {/* Display Assigned Tech if available */}
                         {ticket.assigned_to && (
                           <div className="flex items-center gap-1 text-xs text-blue-600 mb-2 font-medium">
                             <User size={12} /> Assigned: {ticket.assigned_to}
@@ -234,7 +228,6 @@ export default function KanbanBoard() {
             })}
           </div>
           
-          {/* Footer Bar */}
           <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1"><div className="w-2 h-2 bg-green-500 rounded-full"></div> 12 Staff Online</span>

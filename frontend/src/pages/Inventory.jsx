@@ -72,7 +72,7 @@ export default function Inventory() {
               <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center"><DollarSign size={24} /></div>
               <div>
                 <p className="text-sm font-semibold text-slate-500">Monthly Expenditure</p>
-                <h3 className="text-2xl font-bold text-slate-900">$1,240.50</h3>
+                <h3 className="text-2xl font-bold text-slate-900">KSh161,265</h3>
               </div>
             </div>
           </div>

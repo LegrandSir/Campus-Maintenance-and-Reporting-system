@@ -34,14 +34,17 @@ export default function Dashboard() {
   }, []);
   
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    // FIXED: Changed localStorage to sessionStorage to break the redirect loop
+    const storedUser = sessionStorage.getItem('user');
     if (!storedUser) return navigate('/login');
     setUser(JSON.parse(storedUser));
 
-    api.get('/tickets').then(res => setTickets(res.data)).catch(console.error);
+    // Fetch Stats
     api.get('/tickets/stats').then(res => setStats(res.data)).catch(console.error);
     
+    // Fetch Tickets
     api.get('/tickets').then(res => setTickets(res.data)).catch(() => {
+      // Fallback mock data if backend fails
       setTickets([
         { id: 1024, title: 'Water Leakage in Freida brown bath...', location: '2nd Floor, Bathroom 4', priority: 'Urgent Priority', status: 'In Progress', date: '2023-10-24' },
         { id: 1025, title: 'Broken AC Unit in Lab 4', location: 'lilian beam k Ground Floor', priority: 'High Priority', status: 'Open', date: '2023-10-25' },

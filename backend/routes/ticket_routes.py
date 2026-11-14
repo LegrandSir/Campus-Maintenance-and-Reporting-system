@@ -1,7 +1,7 @@
-# backend/routes/ticket_routes.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.ticket import Ticket
+from models import db  # <--- Add this new line here
 from services.ticket_service import create_new_ticket, get_ticket_by_id, resolve_ticket, get_ticket_stats, escalate_ticket, submit_ticket_feedback, update_ticket_status
 
 ticket_bp = Blueprint('tickets', __name__)
