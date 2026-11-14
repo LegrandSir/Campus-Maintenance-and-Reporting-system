@@ -1,3 +1,4 @@
+// frontend/src/components/Sidebar.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Plus, FileText, Kanban, Settings, HelpCircle, LogOut, Package, Monitor, Calendar } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -8,8 +9,8 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState('Student'); // Default to Student
 
   useEffect(() => {
-    // Read the actual user role from local storage
-    const storedUser = localStorage.getItem('user');
+    // Read the actual user role from SESSION storage, not local
+    const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
       setUserRole(JSON.parse(storedUser).role);
     }
@@ -35,7 +36,7 @@ export default function Sidebar() {
           <FileText size={20} /> My Tickets
         </button>
         
-       {/* STAFF & ADMIN Shared Tools */}
+        {/* STAFF, MAINTENANCE & ADMIN Shared Tools */}
         {(userRole === 'Staff' || userRole === 'Admin' || userRole === 'Maintenance') && (
           <>
             <button onClick={() => navigate('/kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive('/kanban')}`}>
@@ -47,8 +48,8 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* ADMIN ONLY Tools */}
-        {userRole === 'Admin' && (
+        {/* ADMIN & MAINTENANCE ONLY Tools */}
+        {(userRole === 'Admin' || userRole === 'Maintenance') && (
           <>
             <button onClick={() => navigate('/assets')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive('/assets')}`}>
               <Monitor size={20} /> Assets
@@ -61,16 +62,29 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-blue-900/50 space-y-2">
-        {/* ONLY show Settings for Admins */}
-        {userRole === 'Admin' && (
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-blue-100 hover:bg-blue-800/50 rounded-xl transition-colors">
+        {/* ONLY show Settings for Admins or Maintenance */}
+        {(userRole === 'Admin' || userRole === 'Maintenance') && (
+          <button 
+            onClick={() => navigate('/settings')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive('/settings')}`}
+          >
             <Settings size={20} /> Settings
           </button>
         )}
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-blue-100 hover:bg-blue-800/50 rounded-xl transition-colors">
+        <button 
+          onClick={() => navigate('/help')} 
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive('/help')}`}
+        >
           <HelpCircle size={20} /> Help
         </button>
-        <button onClick={() => { localStorage.removeItem('user'); navigate('/login'); }} className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors mt-4">
+        <button 
+          onClick={() => { 
+            sessionStorage.removeItem('user'); 
+            sessionStorage.removeItem('token');
+            navigate('/login'); 
+          }} 
+          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors mt-4"
+        >
           <LogOut size={20} /> Sign Out
         </button>
       </div>

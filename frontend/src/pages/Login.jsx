@@ -19,8 +19,8 @@ export default function Login() {
       const actualToken = response.data.access_token || response.data.token;
       
       if (actualToken) {
-        localStorage.setItem('token', actualToken);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        sessionStorage.setItem('token', actualToken);
+        sessionStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/dashboard');
       } else {
         setError('Login succeeded, but no token was received.');
