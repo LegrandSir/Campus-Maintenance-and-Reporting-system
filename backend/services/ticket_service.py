@@ -15,13 +15,24 @@ def create_new_ticket(data, user_email):
             description=data.get('description'),
             location=data.get('location'),
             priority=data.get('priority', 'Medium Priority'),
+
             status='Open',
             image_url=data.get('image_url'),  # optional Base64 photo
+
+            status='Open', # Default status for new tickets
+            image_url=data.get('image_url'), # Stores Base64 photo from Upload or Camera
+            assigned_to=data.get('assigned_to'),
+
             user_id=user.id
         )
         db.session.add(new_ticket)
         db.session.commit()
-        return {"success": True, "message": "Ticket created successfully", "ticket_id": new_ticket.id}, 201
+        return {
+            "success": True, 
+            "message": "Ticket created successfully", 
+            "ticket_id": new_ticket.id,
+            "ticket": new_ticket.to_dict()
+        }, 201
     except Exception as e:
         db.session.rollback()
         return {"success": False, "error": str(e)}, 500
@@ -37,6 +48,7 @@ def get_ticket_by_id(ticket_id, user_email):
 
     return {"success": True, "ticket": ticket}, 200
 
+
 def resolve_ticket(ticket_id, user_email):
     user = User.query.filter_by(email=user_email).first()
     if not user:
@@ -46,8 +58,16 @@ def resolve_ticket(ticket_id, user_email):
     if not ticket:
         return {"success": False, "error": "Ticket not found"}, 404
 
+
     ticket.status = 'Resolved'
     ticket.resolved_date = datetime.utcnow()
+
+
+        
+    # Update the status and record resolution timestamp
+    ticket.status = 'Resolved'
+    ticket.resolved_date = datetime.utcnow()
+    
 
     try:
         db.session.commit()
@@ -55,6 +75,7 @@ def resolve_ticket(ticket_id, user_email):
     except Exception as e:
         db.session.rollback()
         return {"success": False, "error": str(e)}, 500
+
 
 def get_ticket_stats():
     try:
@@ -67,10 +88,15 @@ def get_ticket_stats():
             "active": active,
             "resolved": resolved,
             "total": total,
+
             "avg_response": "2.4h"  # Static for now, requires a timestamp diff implementation later
+
+            "avg_response": "2.4h"
+
         }, 200
     except Exception as e:
         return {"success": False, "error": str(e)}, 500
+
 
 def escalate_ticket(ticket_id, user_email):
     user = User.query.filter_by(email=user_email).first()
@@ -99,8 +125,14 @@ def submit_ticket_feedback(ticket_id, user_email, feedback_text):
     if not ticket:
         return {"success": False, "error": "Ticket not found"}, 404
 
+
     # In a production app, you would save this to a Feedback table
     return {"success": True, "message": "Feedback submitted successfully"}, 200
+
+        
+    return {"success": True, "message": "Feedback submitted successfully"}, 200
+
+
 
 def update_ticket_status(ticket_id, new_status, user_email, assigned_to=None):
     user = User.query.filter_by(email=user_email).first()
@@ -114,6 +146,10 @@ def update_ticket_status(ticket_id, new_status, user_email, assigned_to=None):
     ticket.status = new_status
     if assigned_to is not None:
         ticket.assigned_to = assigned_to
+
+    if new_status == 'Resolved':
+        ticket.resolved_date = datetime.utcnow()
+    
 
     try:
         db.session.commit()
